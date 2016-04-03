@@ -1,0 +1,1 @@
+appcfg.py -A fan-ai -V v1 update .

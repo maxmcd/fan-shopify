@@ -9,7 +9,7 @@
 ## Timeline
 4/1/16
 Get an idea of how much this is needed and get a sense of how much of a technical solution there is. 
-Talk to 3 people for both. Due date is 4/7/16
+Talk to 3 people for both. Due date is 4/8/16
 
 ## News
 - http://simplystatistics.org/2016/03/30/humans-as-training-set/
@@ -18,6 +18,15 @@ Talk to 3 people for both. Due date is 4/7/16
 
 ## Papers
 - http://arxiv.org/pdf/1506.05869v2.pdf
+- http://arxiv.org/pdf/1507.04808.pdf
+- http://arxiv.org/pdf/1506.07285.pdf
+- http://arxiv.org/pdf/1603.09457.pdf
+- https://scirate.com/arxiv/1603.08079
+- http://research.microsoft.com/pubs/175562/ASRU-Demo-2011.pdf
+- https://scirate.com/arxiv/1503.02364
+- https://scirate.com/arxiv/1502.01710
+- https://scirate.com/arxiv/1412.5567
+- https://scirate.com/arxiv/1409.3215
 
 ## Tools
  - https://biosphere.cc/software-engineering/go-machine-learning-nlp-libraries/
@@ -33,6 +42,7 @@ Talk to 3 people for both. Due date is 4/7/16
  - https://github.com/farizrahman4u/seq2seq
  - https://github.com/sbl/ner
  - https://github.com/mit-nlp/MITIE
+ - https://github.com/fanout/pushpin
  - https://www.nylas.com/
 
 ## Platforms
