@@ -20,3 +20,8 @@ libraries:
   version: "2.6"
 - name: markupsafe
   version: "0.15"
+
+skip_files:
+- ^(.*/)?.*\.py[co]$
+- node_modules/(.*)
+- bower_components/(.*)

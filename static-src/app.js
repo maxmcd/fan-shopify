@@ -1,5 +1,5 @@
 $(function() {
-    sock = new WebSocket('ws://l:7999/ws/');
+    window.sock = new WebSocket('ws://l:7999/ws/');
     sock.onopen = function() {
         console.log('open');
     };

@@ -4,6 +4,8 @@ import os
 
 from google.appengine.api import urlfetch
 
+from fan.models import *
+
 app = flask.Flask(__name__)
 app.config['DEBUG'] = True
 
