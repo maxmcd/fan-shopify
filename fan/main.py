@@ -82,14 +82,14 @@ class AppHandler():
         return flask.render_template('app.jinja2')
 
 
-class RootHandler():
+class RootHandler(object):
 
     @app.route('/')
     def root():
         return flask.render_template('index.jinja2')
 
     @app.errorhandler(404)
-    def page_not_found():
+    def page_not_found(self):
         """Return a custom 404 error."""
         return 'Sorry, nothing at this URL.', 404
 
@@ -108,6 +108,8 @@ class WebsocketHandler():
             respBody += "TEXT %s\r\n%s\r\n" % (hex(len(controlMessage)), controlMessage)
         else:
             result = sendChannelMessage(user.key.urlsafe(), flask.request.data)
+            message = Message(converstion="test", body=flask.request.data)
+            message.put()
             # print result.status_code
             respBody = ""
 
@@ -117,3 +119,16 @@ class WebsocketHandler():
 
         return resp
 
+
+class ApiUserHandler(object):
+
+    # nah
+    @app.route('/api/v1/messages/')
+    def messages():
+        messages = Message.query().order(Message.created).fetch()
+        out = {
+            'messages': []
+        }
+        for msg in messages:
+            out['messages'].append(msg.toJson())
+        return flask.jsonify(out)

@@ -17,10 +17,14 @@ const Conversation = React.createClass({
         }
     },
     componentDidMount() {
+        $.ajax('/api/v1/messages/', {success: this.loadMessages})
         this.sock = new WebSocket('ws://l:7999/ws/');
         this.sock.onmessage = this.onMessage
         this.sock.onopen = this.onOpen
         this.sock.onclose = this.onClose
+    },
+    loadMessages(data) {
+        this.setState({messages: data.messages})
     },
     onMessage(e) {
         this.state.messages.push(JSON.parse(e.data))

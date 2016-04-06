@@ -18,7 +18,33 @@ class Team(BaseModel):
 
     subdomain = ndb.StringProperty()
 
+class Integration(BaseModel):
+
+    # parent = Team
+
+    platformName = ndb.StringProperty()
+    authData = ndb.PickleProperty()
+
+class Conversation(BaseModel):
+
+    # parent = Team
+    integration = ndb.KeyProperty(kind='Integration')
+
+class Message(ndb.Model):
+
+    created = ndb.DateTimeProperty(auto_now_add=True)
+    converstion = ndb.StringProperty()
+    body = ndb.TextProperty()
+
+    def toJson(self):
+        return {
+            'ts':self.created,
+            'msg':self.body, 
+        }
+
 class User(BaseModel):
+
+    # parent = Team
 
     email = ndb.StringProperty()
     passwordHash = ndb.StringProperty()
