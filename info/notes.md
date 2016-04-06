@@ -44,6 +44,7 @@ Talk to 3 people for both. Due date is 4/8/16
  - https://github.com/mit-nlp/MITIE
  - https://github.com/fanout/pushpin
  - https://www.nylas.com/
+ - https://github.com/tflearn/tflearn
 
 ## Platforms
  - Facebook Messenger

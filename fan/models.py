@@ -1,6 +1,8 @@
 import flask
 import json
 import os
+import uuid
+import hashlib
 
 from google.appengine.ext import ndb
 
@@ -11,6 +13,10 @@ class BaseModel(ndb.Model):
 
     lastUpdate = ndb.DateTimeProperty(auto_now=True)
     created = ndb.DateTimeProperty(auto_now_add=True)
+
+class Team(BaseModel):
+
+    subdomain = ndb.StringProperty()
 
 class User(BaseModel):
 
@@ -64,6 +70,11 @@ class User(BaseModel):
         targetHash = hashlib.sha224(self.passwordSalt + password).hexdigest()
         return targetHash == self.passwordHash
 
+    def getJson(self):
+        return {
+            'email':self.email,
+        }
+
     def login(self):
         flask.session[self.sessionKey] = self.key.urlsafe()
         flask.session.permanent = True
@@ -71,8 +82,7 @@ class User(BaseModel):
 
     def put(self):
         ndb.Model.put(self)
-        if self.isLoggedIn():
-            self.login()
+        self.login()
 
     def setPassword(self, password):
         self.passwordSalt = str(uuid.uuid4())
