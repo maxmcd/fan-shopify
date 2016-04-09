@@ -1,6 +1,11 @@
-runtime: python27
 api_version: 1
+application: fan-ai
+runtime: python27
 threadsafe: yes
+module: default
+
+builtins:
+- remote_api: on
 
 handlers:
 - url: "/static"
@@ -13,13 +18,15 @@ handlers:
   upload: favicon.ico
   expiration: 4d
 - url: .*
-  script: fan.main.app
+  script: fan._app.app
 
 libraries:
 - name: jinja2
   version: "2.6"
 - name: markupsafe
   version: "0.15"
+- name: ssl
+  version: latest
 
 skip_files:
 - ^(.*/)?.*\.py[co]$

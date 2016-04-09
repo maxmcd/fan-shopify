@@ -17,8 +17,7 @@
     "tests"
   ],
   "dependencies": {
-    "react": "^0.14.7",
-    "ReactRouter.min": "https://npmcdn.com/react-router/umd/ReactRouter.min.js",
+    "react": "15.0",
     "jquery": "^2.2.2"
   }
 }

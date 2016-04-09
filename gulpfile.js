@@ -11,14 +11,14 @@ var gulp = require('gulp'),
 
 
 gulp.task('pushpin', function (cb) {
-    spawn('pushpin', ['--config=.pushpin/pushpin.conf']);
+    // spawn('pushpin', ['--config=.pushpin/pushpin.conf']);
     // we're blind here, use the logs dir in .pushpin/log
 })
 
 gulp.task('gae-serve', function() {
     gulp.src('app.yaml')
         .pipe(gae('dev_appserver.py', [], {
-            port: 8080,
+            port: 8546,
             host: 'localhost',
             admin_port: 8001,
             admin_host: 'localhost'

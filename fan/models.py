@@ -22,8 +22,14 @@ class Integration(BaseModel):
 
     # parent = Team
 
-    platformName = ndb.StringProperty()
+    platform = ndb.StringProperty()
     authData = ndb.PickleProperty()
+
+    def toJson(self):
+        return {
+            'platform':self.platform,
+            'key':self.key.urlsafe(),
+        }
 
 class Conversation(BaseModel):
 
@@ -35,11 +41,13 @@ class Message(ndb.Model):
     created = ndb.DateTimeProperty(auto_now_add=True)
     converstion = ndb.StringProperty()
     body = ndb.TextProperty()
+    token = ndb.StringProperty()
 
     def toJson(self):
         return {
-            'ts':self.created,
+            'token':self.token,
             'msg':self.body, 
+            'created':self.created,
         }
 
 class User(BaseModel):

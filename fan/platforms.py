@@ -10,12 +10,12 @@ class BasePlatform(object):
         pass
 
     def getConversationkey(attribute):
-        return "%s-%s", (name, attribute)
+        return "%s|%s", (name, attribute)
 
 class Twilio(BasePlatform)
 
     name = "twilio"
 
-    def getConversationKey(phoneNumber):
+    def getConversationKey(self, phoneNumber):
         return super(phoneNumber)
 
