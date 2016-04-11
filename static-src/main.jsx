@@ -12,13 +12,12 @@ const Integrations = React.createClass({
         this.setState({integrations: data.integrations})
     },
     renderIntegration(integ) {
-        return <div key={integ.key}></div>
+        return <div key={integ.key}>{JSON.stringify(integ)}</div>
     },
     render() {
         return (
             <div>
                 {this.state.integrations.map(this.renderIntegration)}
-                <Platforms />
             </div>
         )
     }
@@ -91,6 +90,23 @@ const Platforms = React.createClass({
     },
 })
 
+const Panel = React.createClass({
+    render() {
+        return (
+            <div className="panel panel-default">
+                <div className="panel-heading">
+                    <div className="panel-title">
+                        {this.props.title}
+                    </div>
+                </div>
+                <div className="panel-body">
+                    {this.props.children}
+                </div>
+            </div> 
+        )
+    },
+})
+
 const Conversation = React.createClass({
     sock: null,
     getInitialState() {
@@ -102,7 +118,7 @@ const Conversation = React.createClass({
     },
     componentDidMount() {
         $.ajax('/api/v1/messages/', {success: this.loadMessages})
-        this.sock = new WebSocket('ws://l:7999/ws/');
+        this.sock = new WebSocket('ws://l:8081/ws/');
         this.sock.onmessage = this.onMessage
         this.sock.onopen = this.onOpen
         this.sock.onclose = this.onClose
@@ -152,7 +168,7 @@ const Conversation = React.createClass({
         this.sock.send(JSON.stringify(message))
         message.unconfirmed = true
         this.state.messages.push(message)
-        this.setState({input: null, messages: this.state.messages})
+        this.setState({input: "", messages: this.state.messages})
     },
     render() {
         return (
@@ -168,15 +184,32 @@ const Conversation = React.createClass({
                         <button type="submit">Submit</button>
                     </form>
                 </div>
-                <Integrations />
             </div>
         )
     }
 })
 
+const App = React.createClass({
+    render() {
+        return (
+            <div>
+                <Panel title="conversation">
+                    <Conversation />
+                </Panel>
+                <Panel title="Integrations">
+                    <Integrations />
+                </Panel>
+                <Panel title="Platforms">
+                    <Platforms />
+                </Panel>
+            </div>
+        )
+    },
+})
+
 $(function() {
     var app = $('#app')
     if (app.length) {
-        ReactDOM.render(<Conversation />, app[0])
+        ReactDOM.render(<App />, app[0])
     }
 })
