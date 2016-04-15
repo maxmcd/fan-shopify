@@ -6,6 +6,7 @@
 blobstore
 bower_components
 config.yaml
+config-dev.yaml
 datastore
 lib
 node_modules

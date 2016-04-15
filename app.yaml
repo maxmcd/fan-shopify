@@ -32,3 +32,4 @@ skip_files:
 - ^(.*/)?.*\.py[co]$
 - node_modules/(.*)
 - bower_components/(.*)
+- config-def.yaml

@@ -1,0 +1,6 @@
+[submodule "lib-submodules/shopify_python_api"]
+	path = lib-submodules/shopify_python_api
+	url = https://github.com/metric-collective/shopify_python_api.git
+[submodule "lib-submodules/pyactiveresource"]
+	path = lib-submodules/pyactiveresource
+	url = git@github.com:metric-collective/pyactiveresource.git

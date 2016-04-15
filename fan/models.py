@@ -14,42 +14,6 @@ class BaseModel(ndb.Model):
     lastUpdate = ndb.DateTimeProperty(auto_now=True)
     created = ndb.DateTimeProperty(auto_now_add=True)
 
-class Team(BaseModel):
-
-    subdomain = ndb.StringProperty()
-
-class Integration(BaseModel):
-
-    # parent = Team
-
-    platform = ndb.StringProperty()
-    authData = ndb.PickleProperty()
-
-    def toJson(self):
-        return {
-            'platform':self.platform,
-            'key':self.key.urlsafe(),
-        }
-
-class Conversation(BaseModel):
-
-    # parent = Team
-    integration = ndb.KeyProperty(kind='Integration')
-
-class Message(ndb.Model):
-
-    created = ndb.DateTimeProperty(auto_now_add=True)
-    converstion = ndb.StringProperty()
-    body = ndb.TextProperty()
-    token = ndb.StringProperty()
-
-    def toJson(self):
-        return {
-            'token':self.token,
-            'msg':self.body, 
-            'created':self.created,
-        }
-
 class User(BaseModel):
 
     # parent = Team
@@ -57,7 +21,6 @@ class User(BaseModel):
     email = ndb.StringProperty()
     passwordHash = ndb.StringProperty()
     passwordSalt = ndb.StringProperty()
-    status = ndb.StringProperty()
 
     requestAttribute = 'user'
     sessionKey = 'userKey'
@@ -66,29 +29,13 @@ class User(BaseModel):
     def get(cls):
         if not hasattr(flask.request, cls.requestAttribute):
             user = None
-            if not user:
-                user = cls.ensureUser()
+            userKey = flask.session.get(cls.sessionKey)
+            if userKey:
+                user = ndb.Key(urlsafe=userKey).get()
 
             flask.request.user = user
 
         return flask.request.user
-
-    @classmethod
-    def ensureUser(cls):
-        """
-            Ensure that there _is_ a user. This provides a quick
-            check that there is an id in the session, and if there
-            isn't, then it'll create a new user.
-
-            TODO: skip for search engines?
-        """
-        userKey = flask.session.get(cls.sessionKey)
-        if userKey is None:
-            # create a mock user
-            user = cls(status='guest')
-            return user
-        else:
-            return ndb.Key(urlsafe=userKey).get()
 
     @classmethod
     def forEmail(cls, email):
@@ -121,3 +68,89 @@ class User(BaseModel):
     def setPassword(self, password):
         self.passwordSalt = str(uuid.uuid4())
         self.passwordHash = hashlib.sha224(self.passwordSalt + password).hexdigest()
+
+
+class Conversation(BaseModel):
+
+    # parent = Team
+    integration = ndb.KeyProperty(kind='Integration')
+
+class Integration(BaseModel):
+
+    # parent = Team
+
+    platform = ndb.StringProperty()
+    authData = ndb.PickleProperty()
+
+    def toJson(self):
+        return {
+            'platform':self.platform,
+            'key':self.key.urlsafe(),
+        }
+
+class Message(ndb.Model):
+
+    created = ndb.DateTimeProperty(auto_now_add=True)
+    converstion = ndb.StringProperty()
+    body = ndb.TextProperty()
+    token = ndb.StringProperty()
+
+    def toJson(self):
+        return {
+            'token':self.token,
+            'msg':self.body, 
+            'created':self.created,
+        }
+
+class ShopifyUser(User):
+
+    domain = ndb.StringProperty()
+    myshopifyDomain = ndb.StringProperty()
+    pageId = ndb.IntegerProperty()
+    authState = ndb.StringProperty()
+    authToken = ndb.StringProperty()
+
+    requestAttribute = 'shopifyUser'
+    sessionKey = 'shopifyUserKey'
+
+    @classmethod
+    def forShop(cls, myshopifyDomain):
+        return ShopifyUser.query().filter(
+            ShopifyUser.myshopifyDomain == \
+            myshopifyDomain
+        ).get()
+
+    def getBuyLink(variantId, quantity=1):
+        return "%s/cart/%s:%s" % (
+            self.domain,
+            variantId,
+            quantity,
+        )
+
+class ShopifyProduct(BaseModel):
+
+    # id is product id
+    shopifyUser = ndb.KeyProperty(kind="ShopifyUser")
+    title = ndb.StringProperty()
+    handle = ndb.StringProperty()
+    bodyHtml = ndb.TextProperty()
+    variants = ndb.PickleProperty() #[(id, image), ]
+    image = ndb.StringProperty()
+    # created = ndb.DateTimeProperty()
+    productType = ndb.StringProperty()
+    publishedScope = ndb.StringProperty()
+    price = ndb.FloatProperty()
+
+class ShopifyMessage(BaseModel):
+
+    pass
+
+class ShopifyConversation(BaseModel):
+
+    shopifyUser = ndb.KeyProperty(kind="ShopifyUser")
+    active = ndb.BooleanProperty()
+    recipientId = ndb.IntegerProperty()
+
+class Team(BaseModel):
+
+    subdomain = ndb.StringProperty()
