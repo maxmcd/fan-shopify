@@ -17,8 +17,17 @@ handlers:
   static_files: favicon.ico
   upload: favicon.ico
   expiration: 4d
+- url: "/background/"
+  script: fan._app.app
+  secure: optional
+  login: admin
+- url: "/admin/"
+  script: fan._app.app
+  secure: optional
+  login: admin
 - url: .*
   script: fan._app.app
+  secure: optional
 
 libraries:
 - name: jinja2

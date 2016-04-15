@@ -1,0 +1,35 @@
+import flask
+import json
+import os
+import logging
+import shopify
+import uuid
+
+from google.appengine.api import urlfetch
+from google.appengine.api import search 
+
+from fan.models import *
+from fan.util import * 
+from fan._app import app
+from fan import api
+from fan.config import CONFIG
+
+@app.route('/admin/')
+def adminRoot():
+    return flask.render_template('admin/adminRoot.jinja2')
+
+@app.route('/admin/shopify-users/')
+def adminShopifyUsers():
+    shopifyUsers = ShopifyUser.query().fetch()
+    return flask.render_template(
+        'admin/shopifyUsers.jinja2',
+        shopifyUsers=shopifyUsers,
+    )
+
+@app.route('/admin/shopify-users/<shopifyUserKey>/')
+def adminShopifyUser(shopifyUserKey):
+    shopifyUser = ndb.Key(urlsafe=shopifyUserKey).get() 
+    return flask.render_template(
+        'admin/shopifyUser.jinja2',
+        shopifyUser=shopifyUser,
+    )

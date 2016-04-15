@@ -6,6 +6,7 @@ import shopify
 import uuid
 
 from google.appengine.api import urlfetch
+from google.appengine.api import search 
 
 from fan.models import *
 from fan.util import * 
@@ -168,6 +169,9 @@ def shopifyRoot():
                 flash.abort(400)
             token = session.request_token(flask.request.args)
             shopifyUser.authToken = token
+            shopifyUser.activateSession()
+            shop = shopify.Shop.current()
+            shopifyUser.email = shop.email
             shopifyUser.put()
 
             return """

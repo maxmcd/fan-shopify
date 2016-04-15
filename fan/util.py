@@ -1,4 +1,9 @@
+import flask
+
+from google.appengine.ext import ndb
+
 from fan.models import *
+
 
 class RedirectException(Exception):
 
@@ -17,3 +22,15 @@ def EnsureUser(abort=False):
             raise RedirectException('/login/', 302)
         return False
     return True
+
+class params(object):
+
+    @classmethod
+    def get(paramName):
+        return 
+
+    @classmethod
+    def key(keyName):
+        return ndb.Key(
+            urlsafe=flask.request.values.get(paramName)
+        )

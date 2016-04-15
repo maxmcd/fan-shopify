@@ -1,0 +1,6 @@
+total_storage_limit: 25G
+queue:
+- name: default
+  rate: 10/s
+  max_concurrent_requests: 5
+  bucket_size: 50

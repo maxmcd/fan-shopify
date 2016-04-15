@@ -1,0 +1,27 @@
+{% extends 'admin/adminBase.jinja2' %}
+
+{% block body %}
+    <div class="container">
+        <h3>Shopify Users</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Domain</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for shopifyUser in shopifyUsers %}
+                    <tr>
+                        <td>
+                            <a href="{{shopifyUser.getAdminUrl()}}">
+                                {{shopifyUser.myshopifyDomain}}                                
+                            </a>
+                        </td>
+                        <td>{{shopifyUser.created}}</td>
+                    </tr>
+                {% endfor %}                
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

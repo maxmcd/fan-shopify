@@ -3,9 +3,9 @@ import json
 import os
 import uuid
 import hashlib
+import shopify
 
 from google.appengine.ext import ndb
-
 
 class BaseModel(ndb.Model):
 
@@ -113,12 +113,27 @@ class ShopifyUser(User):
     requestAttribute = 'shopifyUser'
     sessionKey = 'shopifyUserKey'
 
+    def activateSession(self):
+        if self.authToken == None:
+            raise Exception(
+                "Can't activate a shopify session without an authToken"
+            )
+
+        session = shopify.Session(
+            self.myshopifyDomain,
+            self.authToken
+        )
+        shopify.ShopifyResource.activate_session(session)
+
     @classmethod
     def forShop(cls, myshopifyDomain):
         return ShopifyUser.query().filter(
             ShopifyUser.myshopifyDomain == \
             myshopifyDomain
         ).get()
+
+    def getAdminUrl(self):
+        return "/admin/shopify-users/%s/" % self.key.urlsafe()
 
     def getBuyLink(variantId, quantity=1):
         return "%s/cart/%s:%s" % (
