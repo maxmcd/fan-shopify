@@ -5,26 +5,29 @@
     <script>
         {% if not dev %}
             ShopifyApp.init({
-              apiKey: '{{shopifyApiKey()}}',
-              shopOrigin: 'https://{{myshopifyDomain}}',
+                apiKey: '{{shopifyApiKey()}}',
+                shopOrigin: 'https://{{myshopifyDomain}}'
             });
-            ShopifyApp.ready(function(){
-                ShopifyApp.Bar.loadingOff()
-                ShopifyApp.Bar.initialize({
-                    icon: '/static/images/logo-sq.png'
-                })
-            })
         {% endif %}
         var shopifyUser = {{shopifyUserJson}}
+        var messengerAppId = "{{facebookAppId()}}"
     </script>  
 {% endblock %}
 
 {% block body %}
-
+    <script type="text/javascript">
+        ShopifyApp.ready(function(e){
+            console.log(e)
+            ShopifyApp.Bar.loadingOff()
+            ShopifyApp.Bar.initialize({
+                icon: '/static/images/logo-sq.png'
+            })
+        })
+    </script>
     <script>
         window.fbAsyncInit = function() {
             FB.init({
-                appId      : '{{facebookAppId()}}',
+                appId      : messengerAppId,
                 xfbml      : true,
                 version    : 'v2.6'
             });

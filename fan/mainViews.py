@@ -136,21 +136,29 @@ def websocket():
 
 @app.route('/shopify/')
 def shopifyRoot():
-    referrer = flask.request.referrer or ""
-    if CONFIG['dev'] and "shopify" not in referrer:
-        shopifyUser = ShopifyUser.forShop('fan-shop-5.myshopify.com')
-        shopifyUser.login()
+
+    def shopifyRootResponse(dev=False):
         return flask.render_template(
             'shopifyRoot.jinja2',
             bodyClass="shopify",
             myshopifyDomain=shopifyUser.myshopifyDomain,
             shopifyUserJson=json.dumps(shopifyUser.getJson()),
-            dev=True,
+            dev=dev,
         )
 
+    referrer = flask.request.referrer or ""
+    dev = (CONFIG['dev'] and "shopify" not in referrer)
+    
+    shopifyUser = ShopifyUser.get()
+    if shopifyUser:
+        return shopifyRootResponse(dev=dev)
+
+    if dev:
+        shopifyUser = ShopifyUser.forShop('fan-shop-5.myshopify.com')
+        shopifyUser.login()
+        return shopifyRootResponse(dev=True)
+
     myshopifyDomain = flask.request.values.get('shop')
-    logging.info(CONFIG['shopify']['api_key'])
-    logging.info(CONFIG['shopify']['shared_secret'])
 
     if shopify.Session.validate_params(flask.request.args):
 
@@ -163,11 +171,7 @@ def shopifyRoot():
 
         if shopifyUser.authToken:
             shopifyUser.login()
-            return flask.render_template(
-                'shopifyRoot.jinja2',
-                bodyClass="shopify",
-                myshopifyDomain=shopifyUser.myshopifyDomain,
-            )
+            return shopifyRootResponse()
 
         # if there's a code, we need to request an oauth token
         # and then redirect to back to the shop in the users
@@ -221,7 +225,7 @@ def shopifyRoot():
             """ % permission_url
 
     else:
-        logging.warning("Misc shopify 400 error")
+        logging.warning("Session params failed validation")
         flask.abort(400)
 
 @app.route('/shopify/get-facebook-pages/', methods=['GET', 'POST'])
@@ -256,20 +260,30 @@ def selectFacebookPage():
 
 @app.route('/facebook-messenger/webhook/', methods=['GET', 'POST'])
 def facebookMessangerWebhook():
-    data = json.loads(flask.request.data)
-    loggin.info(data)
-    # json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
-    entries = data.get('entry')
-    for entry in entries:
-        for message in entry.get('messaging'):
-            if message.get('message'):
-                text = message.get('message').get('text')
-                logging.info(text)
-                resp = api.sendFacebookGenericTemplate(message.get('sender'))
-                logging.info(resp)
-            if message.get('postback'):
-                logging.info("got postback!")
-                logging.info(message.get('postback'))
-    # # return flask.request.values.get('hub.challenge')
+    try:
+        challenge = params.get('hub.challenge')
+        if challenge:
+            return challenge
+
+        data = json.loads(flask.request.data)
+        logging.info(data)
+        # json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
+        entries = data.get('entry')
+        for entry in entries:
+            for message in entry.get('messaging'):
+                if message.get('message'):
+                    text = message.get('message').get('text')
+                    logging.info(text)
+                    # resp = api.sendFacebookGenericTemplate(message.get('sender'))
+                    # logging.info(resp)
+                if message.get('postback'):
+                    logging.info("got postback!")
+                    logging.info(message.get('postback'))
+
+    except Exception as e:
+        if CONFIG['dev']:
+            print e
+        else:
+            raise
+
     return "OK"
-    # return flask.render_template('shopifyRoot.jinja2')

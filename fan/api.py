@@ -16,8 +16,6 @@ def facebook(path, method="POST", body=None, accessToken=None):
         path,
         accessToken,
     )
-    print url 
-    print body
     resp = urlfetch.Fetch(
         url,
         method=method,

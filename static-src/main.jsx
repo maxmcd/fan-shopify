@@ -223,7 +223,8 @@ const LoadingButton = React.createClass({
     }
 })
 
-const ShopifyApp = React.createClass({
+// Do not conflict with Shopify or ShopifyApp namespace
+const ShopifyAppComponent = React.createClass({
     getInitialState() {
         let installStep = 1
         let installing = true
@@ -390,6 +391,20 @@ const ShopifyApp = React.createClass({
                             <li><a href="#" onClick={this.contactSupport}>Contact Support</a></li>
                         </ul>
                     </div>
+                    <p>
+                        We're connected with your facebook page&nbsp; 
+                        <b>{this.state.shopifyUser.facebookPageName}</b>.
+                    </p>
+                    <p>
+                        Your customers can discover and purchase your products using facebook messenger.
+                        Test it out by chatting with your store here: 
+                    </p>
+                    <div className="fb-messengermessageus" 
+                      messenger_app_id={window.messengerAppId} 
+                      page_id={this.state.shopifyUser.pageId} 
+                      data-ref="nah" 
+                      color="blue" 
+                      size="small"></div>
                 </div> 
             )
         }
@@ -423,6 +438,6 @@ $(function() {
     }
     var app = $('#shopifyApp')
     if (app.length) {
-        ReactDOM.render(<ShopifyApp />, app[0])
+        ReactDOM.render(<ShopifyAppComponent />, app[0])
     }
 })
