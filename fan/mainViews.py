@@ -6,6 +6,7 @@ import shopify
 import uuid
 
 from google.appengine.api import urlfetch
+from google.appengine.api import taskqueue
 from google.appengine.api import search 
 
 from fan.models import *
@@ -135,7 +136,21 @@ def websocket():
 
 @app.route('/shopify/')
 def shopifyRoot():
+    referrer = flask.request.referrer or ""
+    if CONFIG['dev'] and "shopify" not in referrer:
+        shopifyUser = ShopifyUser.forShop('fan-shop-5.myshopify.com')
+        shopifyUser.login()
+        return flask.render_template(
+            'shopifyRoot.jinja2',
+            bodyClass="shopify",
+            myshopifyDomain=shopifyUser.myshopifyDomain,
+            shopifyUserJson=json.dumps(shopifyUser.getJson()),
+            dev=True,
+        )
+
     myshopifyDomain = flask.request.values.get('shop')
+    logging.info(CONFIG['shopify']['api_key'])
+    logging.info(CONFIG['shopify']['shared_secret'])
 
     if shopify.Session.validate_params(flask.request.args):
 
@@ -147,18 +162,12 @@ def shopifyRoot():
             shopifyUser = ShopifyUser(myshopifyDomain=myshopifyDomain)
 
         if shopifyUser.authToken:
-            # session = shopify.Session(
-            #     shopifyUser.myshopifyDomain,
-            #     shopifyUser.authToken
-            # )
-            # shopify.ShopifyResource.activate_session(session)
             shopifyUser.login()
-            return flask.render_template('shopifyRoot.jinja2')
-            # try:
-            #     flask.request.shop = shopify.Shop.current()
-            #     return True
-            # except:
-            #     return False
+            return flask.render_template(
+                'shopifyRoot.jinja2',
+                bodyClass="shopify",
+                myshopifyDomain=shopifyUser.myshopifyDomain,
+            )
 
         # if there's a code, we need to request an oauth token
         # and then redirect to back to the shop in the users
@@ -172,6 +181,12 @@ def shopifyRoot():
             shopifyUser.activateSession()
             shop = shopify.Shop.current()
             shopifyUser.email = shop.email
+            taskqueue.add(
+                url='/background/shopify/init/', 
+                params={
+                    'shopifyUser':shopifyUser.key.urlsafe(),
+                }, 
+            )
             shopifyUser.put()
 
             return """
@@ -196,7 +211,8 @@ def shopifyRoot():
             permission_url = session.create_permission_url(scope)
             print permission_url
             permission_url += ("&state=" + authState)
-            permission_url += ("&redirect_uri=" + "https://7a1424fa.ngrok.io/shopify/")
+            redirect_uri = "https://%s/shopify/" % CONFIG['application_host']
+            permission_url += ("&redirect_uri=" + redirect_uri)
 
             return """
                 <script type='text/javascript'>
@@ -208,23 +224,52 @@ def shopifyRoot():
         logging.warning("Misc shopify 400 error")
         flask.abort(400)
 
+@app.route('/shopify/get-facebook-pages/', methods=['GET', 'POST'])
+def getFacebookPages():
+    shopifyUser = ShopifyUser.get()
+
+    facebookToken = params.get('facebookToken')
+    if facebookToken:
+        shopifyUser.facebookToken = facebookToken
+        shopifyUser.put()
+    logging.info(facebookToken)
+
+    pages = shopifyUser.getFacebookPages()
+
+    return flask.jsonify({'pages':pages})
+
+@app.route('/shopify/select-page/', methods=['GET', 'POST'])
+def selectFacebookPage():
+    shopifyUser = ShopifyUser.get()
+
+    pageId = params.get('pageId')
+    facebookPageToken = params.get('facebookPageToken')
+    facebookPageName = params.get('facebookPageName')
+
+    shopifyUser.pageId = pageId
+    shopifyUser.facebookPageToken = facebookPageToken
+    shopifyUser.facebookPageName = facebookPageName
+    shopifyUser.put()
+
+    return flask.jsonify(api.subscribeFacebookPage(facebookPageToken))
+
+
 @app.route('/facebook-messenger/webhook/', methods=['GET', 'POST'])
 def facebookMessangerWebhook():
-    print flask.request.values.keys()
-    print flask.request.headers
     data = json.loads(flask.request.data)
-    print json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))    
+    loggin.info(data)
+    # json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
     entries = data.get('entry')
     for entry in entries:
         for message in entry.get('messaging'):
             if message.get('message'):
                 text = message.get('message').get('text')
-                print text
+                logging.info(text)
                 resp = api.sendFacebookGenericTemplate(message.get('sender'))
-                print resp.content
+                logging.info(resp)
             if message.get('postback'):
-                print "got postback!"
-                print message.get('postback')
+                logging.info("got postback!")
+                logging.info(message.get('postback'))
     # # return flask.request.values.get('hub.challenge')
     return "OK"
     # return flask.render_template('shopifyRoot.jinja2')

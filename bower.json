@@ -18,6 +18,9 @@
   ],
   "dependencies": {
     "react": "15.0",
-    "jquery": "^2.2.2"
+    "jquery": "^2.2.2",
+    "bootstrap-css": "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css",
+    "boostrap-js": "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js",
+    "font-awesome.min": "https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css"
   }
 }

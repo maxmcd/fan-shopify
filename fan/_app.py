@@ -16,3 +16,4 @@ shopify.Session.setup(
 import fan.mainViews
 import fan.apiViews
 import fan.adminViews
+import fan.backgroundViews

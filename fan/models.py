@@ -6,6 +6,9 @@ import hashlib
 import shopify
 
 from google.appengine.ext import ndb
+from google.appengine.api import search
+
+from fan import api
 
 class BaseModel(ndb.Model):
 
@@ -106,12 +109,39 @@ class ShopifyUser(User):
 
     domain = ndb.StringProperty()
     myshopifyDomain = ndb.StringProperty()
-    pageId = ndb.IntegerProperty()
     authState = ndb.StringProperty()
     authToken = ndb.StringProperty()
+    pageId = ndb.StringProperty()
+    facebookPageName = ndb.StringProperty()
+    facebookToken = ndb.StringProperty()
+    facebookPageToken = ndb.StringProperty()
 
     requestAttribute = 'shopifyUser'
     sessionKey = 'shopifyUserKey'
+
+    @classmethod
+    def forShop(cls, myshopifyDomain):
+        return ShopifyUser.query().filter(
+            ShopifyUser.myshopifyDomain == \
+            myshopifyDomain
+        ).get()
+
+    def getJson(self):
+        return {
+            'pageId':self.pageId,
+            'facebookToken':self.facebookToken,
+            'facebookPageName':self.facebookPageName,
+        }
+
+    def getFacebookPages(self):
+        return api.facebook(
+            "/me/accounts", 
+            method="GET",
+            body={
+                'is_promotable':True,
+            },
+            accessToken=self.facebookToken,
+        )
 
     def activateSession(self):
         if self.authToken == None:
@@ -124,13 +154,6 @@ class ShopifyUser(User):
             self.authToken
         )
         shopify.ShopifyResource.activate_session(session)
-
-    @classmethod
-    def forShop(cls, myshopifyDomain):
-        return ShopifyUser.query().filter(
-            ShopifyUser.myshopifyDomain == \
-            myshopifyDomain
-        ).get()
 
     def getAdminUrl(self):
         return "/admin/shopify-users/%s/" % self.key.urlsafe()
@@ -149,12 +172,27 @@ class ShopifyProduct(BaseModel):
     title = ndb.StringProperty()
     handle = ndb.StringProperty()
     bodyHtml = ndb.TextProperty()
-    variants = ndb.PickleProperty() #[(id, image), ]
+    variants = ndb.PickleProperty() #[(id, image, price), ]
     image = ndb.StringProperty()
     # created = ndb.DateTimeProperty()
     productType = ndb.StringProperty()
     publishedScope = ndb.StringProperty()
-    price = ndb.FloatProperty()
+    tags = ndb.StringProperty()
+    price = ndb.StringProperty()
+    deleted =ndb.BooleanProperty(default=False)
+
+    def getSearchDocument(self):
+        # TODO: add date added field 
+        # search.DateField(name='birthday', value=datetime(year=1960, month=6, day=19)),
+        return search.Document(
+            doc_id = str(self.key.id()),
+            fields=[
+                search.TextField(name='title', value=self.title),
+                search.HtmlField(name='description', value=self.bodyHtml),
+                search.TextField(name='tags', value=self.tags),
+                search.TextField(name='product_type', value=self.productType),
+            ]
+        )
 
 class ShopifyMessage(BaseModel):
 

@@ -2,7 +2,11 @@
 
 {% block body %}
     <div class="container">
-        <h3>{{shopifyUser.myshopifyDomain}}</h3>
+        <br>
+        <ol class="breadcrumb">
+            <li><a href="/admin/shopify-users/">Shopify Users</a></li>
+            <li class="active">{{shopifyUser.myshopifyDomain}}</li>
+        </ol>
         <div class="row">
             <div class="col-md-6">
                 <div class="panel panel-default">
@@ -10,6 +14,10 @@
                         <div>
                             <b>Email: </b> {{shopifyUser.email}}
                         </div>                        
+                        <form action="product-search/">
+                            <input name="q" type="text" class="form-control">
+                            <button>Submit</button>
+                        </form>
                     </div>
                 </div>
             </div>

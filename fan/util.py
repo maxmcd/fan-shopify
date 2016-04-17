@@ -26,11 +26,11 @@ def EnsureUser(abort=False):
 class params(object):
 
     @classmethod
-    def get(paramName):
-        return 
+    def get(cls, paramName):
+        return flask.request.values.get(paramName)
 
     @classmethod
-    def key(keyName):
+    def key(cls, paramName):
         return ndb.Key(
             urlsafe=flask.request.values.get(paramName)
         )

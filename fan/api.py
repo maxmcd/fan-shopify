@@ -7,30 +7,39 @@ from google.appengine.api import urlfetch
 
 from fan.config import CONFIG
 
-def facebook(path, body=None, access_token=None):
+def facebook(path, method="POST", body=None, accessToken=None):
     version = "v2.6"
-    if not access_token:
-        access_token = CONFIG['facebook']['access_token']
-    url = "https://graph.facebook.com/%s/%s?access_token=%s" % (
+    if not accessToken:
+        accessToken = CONFIG['facebook']['access_token']
+    url = "https://graph.facebook.com/%s%s?access_token=%s" % (
         version,
         path,
-        access_token,
+        accessToken,
     )
-    return urlfetch.Fetch(
+    print url 
+    print body
+    resp = urlfetch.Fetch(
         url,
-        method="POST",
+        method=method,
         payload=json.dumps(body),
         headers={'content-type':'application/json'}
     )
+    if resp.status_code == 200:
+        return json.loads(resp.content)
+    else:
+        logging.info(resp.content)
+        raise Exception
+
+def subscribeFacebookPage(accessToken):
+    return facebook('/me/subscribed_apps', accessToken=accessToken)
 
 def sendFacebookMessage(recipient, message):
-    resp = facebook('me/messages/', {
+    resp = facebook('/me/messages/', body={
         "recipient":recipient, 
         "message":message,
     })
-    response = json.loads(resp.content)
-    recipient_id = response.get('recipient_id')
-    message_id = response.get('message_id')
+    recipient_id = resp.get('recipient_id')
+    message_id = resp.get('message_id')
     return resp
 
 

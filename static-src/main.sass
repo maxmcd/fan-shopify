@@ -4,18 +4,51 @@
 p.unconfirmed
     color: #999
 
-
-    
-body.homepage
+html
     min-height: 100%
-    background-image: linear-gradient(133deg,#000 0,#0c0622 21%,#2e3165 44%,#4a6db9 72%,#37c8ff 100%)
+
+body
+    font-family: 'Open Sans', san-serif
+    
+    &.homepage, &.shopify
+        background-image: linear-gradient(133deg,#000 0,#0c0622 21%,#2e3165 44%,#4a6db9 72%,#37c8ff 100%)
+        min-height: 100%
+    
+    &.shopify
+        padding-top: 60px
+    
+        .logo
+            max-width: 150px
+            padding-bottom: 30px
+    
+
+.shopify-app-panel
+    position: relative
+    -webkit-box-shadow: 0 2px 5px rgba(0, 0, 0, 0.65)
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.65)
+
+    .panel-body
+        min-height: 200px
+        padding: 15px 40px;
+
+    .settings-dropdown
+        position: absolute
+        right: 10px
+        top: 10px
+
+.white
+    color: white
+
+body.homepage
     .homepage-content
         margin: 200px auto 0px auto
         width: 400px
         text-align: center
         color: white
+        img
+            width: 210px
         h4
             font-family: 'Open Sans'
             font-weight: 400
             font-size: 50px
-            text-shadow: 0px 0px 14px rgba(255, 255, 255, 0.4)
+            // text-shadow: 0px 0px 14px rgba(255, 255, 255, 0.4)
