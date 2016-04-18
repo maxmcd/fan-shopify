@@ -29,6 +29,18 @@ def importShopifyStore():
     )
     return "OK"
 
+@app.route('/background/shopify/refresh-products/')
+def refreshProducts():
+    for shopifyUser in ShopifyUser.query().fetch():
+        taskqueue.add(
+            url='/background/shopify/products/', 
+            params={
+                'shopifyUser':shopifyUser.key.urlsafe(),
+            },
+            target="default",
+        )
+    return "OK"
+
 @app.route('/background/shopify/products/', methods=['POST', 'GET'])
 def getProducts():
     shopifyUser = params.key('shopifyUser').get()
@@ -127,7 +139,7 @@ def finalizeProductsTask():
     shopifyUser = params.key('shopifyUser').get()
     expiredProducts = ShopifyProduct.query()\
         .filter(ShopifyProduct.shopifyUser == shopifyUser.key)\
-        .filter(ShopifyProduct.lastUpdate > datetime.datetime.now() - datetime.timedelta(days=2))\
+        .filter(ShopifyProduct.lastUpdate < datetime.datetime.now() - datetime.timedelta(days=2))\
         .fetch()
 
     for product in expiredProducts:
@@ -138,5 +150,16 @@ def finalizeProductsTask():
     searchDocumentsToDelete = [str(x.key.id()) for x in expiredProducts]
     index = search.Index(name=shopifyUser.myshopifyDomain)
     index.delete(searchDocumentsToDelete)
+
+    return "OK"
+
+@app.route('/background/shopify/reap-stale-conversations/', methods=['POST', 'GET'])
+def reapStaleConversations():
+    activeConversations = ShopifyConversation.getActive()
+    for conversation in activeConversations:
+        if conversation.recentMessageCount(minutes=20) == 0:
+            conversation.active = False
+            conversation.put()
+            conversation.sendGoodbyeMessage()
 
     return "OK"

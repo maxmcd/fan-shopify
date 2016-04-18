@@ -55,6 +55,7 @@ gulp.task('gae-serve', function() {
             port: 8546,
             host: 'localhost',
             admin_port: 8001,
+            api_port: 8547,
             admin_host: 'localhost',
             allow_skipped_files: true,
         }));

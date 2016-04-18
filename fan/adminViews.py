@@ -43,22 +43,7 @@ def adminShopifyUser(shopifyUserKey):
 def adminShopifyUserProductSearch(shopifyUserKey):
     shopifyUser = ndb.Key(urlsafe=shopifyUserKey).get()
     query = params.get('q')
-
-    index = search.Index(shopifyUser.myshopifyDomain)
-    results = index.search(
-        query=search.Query(
-            query,
-            options=search.QueryOptions(
-                limit=10,
-                cursor=search.Cursor()
-            )
-        )
-    )
-    keys = []
-    for result in results.results:
-        keys.append(ndb.Key(ShopifyProduct, int(result.doc_id)))
-
-    products = ndb.get_multi(keys)
+    products = shopifyUser.search(query)
         
     return flask.render_template(
         'admin/shopifyProductSearch.jinja2',

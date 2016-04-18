@@ -9,8 +9,6 @@ from fan.config import CONFIG
 
 def facebook(path, method="POST", body=None, accessToken=None):
     version = "v2.6"
-    if not accessToken:
-        accessToken = CONFIG['facebook']['access_token']
     url = "https://graph.facebook.com/%s%s?access_token=%s" % (
         version,
         path,
@@ -23,7 +21,9 @@ def facebook(path, method="POST", body=None, accessToken=None):
         headers={'content-type':'application/json'}
     )
     if resp.status_code == 200:
-        return json.loads(resp.content)
+        jsonBody = json.loads(resp.content)
+        logging.info(jsonBody)
+        return jsonBody
     else:
         logging.info(resp.content)
         raise Exception
@@ -31,26 +31,37 @@ def facebook(path, method="POST", body=None, accessToken=None):
 def subscribeFacebookPage(accessToken):
     return facebook('/me/subscribed_apps', accessToken=accessToken)
 
-def sendFacebookMessage(recipient, message):
+def sendFacebookMessage(userId, message, accessToken):
     resp = facebook('/me/messages/', body={
-        "recipient":recipient, 
+        "recipient":{"id":userId}, 
         "message":message,
-    })
+    }, accessToken=shopifyUser.accessToken)
     recipient_id = resp.get('recipient_id')
     message_id = resp.get('message_id')
     return resp
 
 
-def sendFacebookTemplate(recipient, payload):
-    return sendFacebookMessage(recipient, {
+def facebookExtendToken(token):
+    return facebook('/oauth/access_token',
+        body={
+            'grant_type':'fb_exchange_token',
+            'fb_exchange_token':token,
+            'client_id':CONFIG['facebook']['app_id'],
+            'client_secret':CONFIG['facebook']['app_secret'],
+        }
+    )
+
+
+def sendFacebookTemplate(userId, payload):
+    return sendFacebookMessage(userId, {
         "attachment":{
             "type":"template",
             "payload":payload
         }
     })
 
-def sendFacebookButtonTemplate(recipient, message):
-    return sendFacebookTemplate(recipient, {
+def sendFacebookButtonTemplate(userId, message):
+    return sendFacebookTemplate(userId, {
         "template_type":"button",
         "text":message,
         "buttons":[
@@ -67,7 +78,7 @@ def sendFacebookButtonTemplate(recipient, message):
         ]
     })
 
-def sendFacebookGenericTemplate(recipient, message=None):
+def sendFacebookGenericTemplate(userId, message=None):
     # Limits!
     # Title: 45 characters
     # Subtitle: 80 characters
@@ -75,7 +86,7 @@ def sendFacebookGenericTemplate(recipient, message=None):
     # Call-to-action items: 3 buttons
     # Bubbles per message (horizontal scroll): 10 elements
 
-    return sendFacebookTemplate(recipient, {
+    return sendFacebookTemplate(userId, {
         "template_type": "generic",
         "elements": [
             {

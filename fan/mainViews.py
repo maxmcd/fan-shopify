@@ -1,9 +1,13 @@
+import datetime
 import flask
 import json
-import os
 import logging
+import os
+import re
 import shopify
 import uuid
+
+from fuzzywuzzy import fuzz
 
 from google.appengine.api import urlfetch
 from google.appengine.api import taskqueue
@@ -233,10 +237,14 @@ def getFacebookPages():
     shopifyUser = ShopifyUser.get()
 
     facebookToken = params.get('facebookToken')
+
     if facebookToken:
-        shopifyUser.facebookToken = facebookToken
+        resp = api.facebookExtendToken(facebookToken)
+        shopifyUser.facebookToken = resp.get('access_token')
+        if resp.get('expires_in'):
+            expires = datetime.datetime.now() + datetime.timedelta(seconds=resp.get('expires_in'))
+            shopifyUser.tokenExpiresIn = expires
         shopifyUser.put()
-    logging.info(facebookToken)
 
     pages = shopifyUser.getFacebookPages()
 
@@ -257,6 +265,13 @@ def selectFacebookPage():
 
     return flask.jsonify(api.subscribeFacebookPage(facebookPageToken))
 
+@app.route('/shopify/update-user/')
+def updateUser():
+    shopifyUser = ShopifyUser.get()
+    welcomeMessage = params.get('welcomeMessage')
+    shopifyUser.welcomeMessage = welcomeMessage
+    shopifyUser.put()
+    return flask.jsonify(shopifyUser.getJson())
 
 @app.route('/facebook-messenger/webhook/', methods=['GET', 'POST'])
 def facebookMessangerWebhook():
@@ -265,25 +280,67 @@ def facebookMessangerWebhook():
         if challenge:
             return challenge
 
+        print flask.request.data
         data = json.loads(flask.request.data)
         logging.info(data)
         # json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
         entries = data.get('entry')
         for entry in entries:
-            for message in entry.get('messaging'):
-                if message.get('message'):
-                    text = message.get('message').get('text')
-                    logging.info(text)
-                    # resp = api.sendFacebookGenericTemplate(message.get('sender'))
-                    # logging.info(resp)
-                if message.get('postback'):
-                    logging.info("got postback!")
-                    logging.info(message.get('postback'))
-
+            processWebhookEntry(entry)
     except Exception as e:
+        # raise
         if CONFIG['dev']:
             print e
         else:
             raise
 
     return "OK"
+
+def processWebhookEntry(entry):
+    pageId = entry.get('id')
+    shopifyUser = ShopifyUser.forPageId(pageId)
+    if shopifyUser:
+        for message in entry.get('messaging'):
+            processWebhookMessage(shopifyUser, message)
+
+def processWebhookMessage(shopifyUser, message):
+    recipientId = message['recipient']['id']
+    senderId = message['sender']['id']
+    userId = senderId # on reciept 
+
+    conversation = ShopifyConversation.findOrCreate(shopifyUser, userId)
+
+
+    # TODO actually log messages
+    if message.get('message'):
+        logging.info("got message")
+
+        text = message.get('message').get('text')
+        text = text.lower()
+
+        if fuzz.ratio("go shopping", text) >= 90:
+            conversation.startShopping()
+
+        elif text.startswith('search for'):
+            match = re.search('^search for\s?:?\s?(.*)', text)
+            if match:
+                conversation.sendSearchResults(match.group(1))
+
+        elif conversation.isStarting():
+            conversation.sendWelcomeMessage()
+
+        logging.info(text)
+        # resp = api.sendFacebookGenericTemplate(message.get('sender'))
+        # logging.info(resp)
+
+    elif message.get('postback'):
+        logging.info("got postback")
+        # make conversation active if this happens?
+        payload = message['postback']['payload']
+        print payload
+        print payload == "popularProducts"
+        if payload == "popularProducts":
+            print 'WHAGSGSA'
+            conversation.sendPopularProducts()
+        elif payload == "searchForProducts":
+            conversation.sendSearchPrompt()

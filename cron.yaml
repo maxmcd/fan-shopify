@@ -1,5 +1,9 @@
 cron:
-- description: testing out the cron
-  url: /background/test/
-  schedule: every 1 hours
+- description: reap stale conversations
+  url: /background/shopify/reap-stale-conversations/
+  schedule: every 10 minutes
+  timezone: America/New_York
+- description: refresh products
+  url: /background/shopify/refresh-products/
+  schedule: every 48 hours
   timezone: America/New_York

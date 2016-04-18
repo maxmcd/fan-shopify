@@ -309,6 +309,22 @@ const ShopifyAppComponent = React.createClass({
             installStep: 1,
         })
     },
+    contentFormSubmit(e) {
+        e.preventDefault()
+        this.state.shopifyUser.welcomeMessage = $(this.refs.welcomeMessage).val()
+        this.setState({shopifyUser: this.state.shopifyUser})
+        this.updateShopifyUser()
+    },
+    updateShopifyUser() {
+        this.ajax({
+            url: '/shopify/update-user/',
+            method: "GET",
+            data: this.state.shopifyUser,
+            success: (data) => {
+                this.setState({shopifyUser: data})
+            },
+        })
+    },
     selectPage() {
         let selected = $(this.refs.pageSelect).find(':selected')
 
@@ -379,9 +395,13 @@ const ShopifyAppComponent = React.createClass({
                 </div>)
             }
         } else {
+            let welcomeMessage = this.state.shopifyUser.welcomeMessage
+            if (!welcomeMessage) {
+                welcomeMessage = "Welcome! Type \"Go Shopping\" to shop right here on Messenger."
+            }
             return (
                 <div>
-                    <h3 className="center">Dashboard</h3>
+                    <h3 className="center">Fan Commerce</h3>
                     <div className="btn-group settings-dropdown">
                         <button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown">
                             <i className="fa fa-cog"></i>
@@ -389,6 +409,15 @@ const ShopifyAppComponent = React.createClass({
                         <ul className="dropdown-menu dropdown-menu-right">
                             <li><a href="#" onClick={this.changePage}>Change Facebook Page</a></li>
                             <li><a href="#" onClick={this.contactSupport}>Contact Support</a></li>
+                        </ul>
+                    </div>
+                    <div className="btn-group menu-dropdown">
+                        <button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                            <i className="fa fa-bars"></i>
+                        </button>
+                        <ul className="dropdown-menu dropdown-menu-left">
+                            <li><a href="#content">Content</a></li>
+                            <li><a href="#faq">FAQ</a></li>
                         </ul>
                     </div>
                     <p>
@@ -400,11 +429,60 @@ const ShopifyAppComponent = React.createClass({
                         Test it out by chatting with your store here: 
                     </p>
                     <div className="fb-messengermessageus" 
-                      messenger_app_id={window.messengerAppId} 
-                      page_id={this.state.shopifyUser.pageId} 
-                      data-ref="nah" 
-                      color="blue" 
-                      size="small"></div>
+                        messenger_app_id={window.messengerAppId} 
+                        page_id={this.state.shopifyUser.pageId} 
+                        data-ref="nah" 
+                        color="blue" 
+                        size="small"></div>
+
+
+                    <div className="content content-section">
+                        <h3 className="center" id="content">
+                            Content
+                        </h3>
+                        <form onSubmit={this.contentFormSubmit}>
+                            <div className="form-group">
+                                <label for="exampleInputEmail1">Welcome Message</label>
+                                <textarea ref="welcomeMessage" type="email" className="form-control">{welcomeMessage}</textarea>
+                                <p>
+                                    Your welcome message is the first message your users recieve.
+                                    Make sure it mentions that users have to type "Go Shopping"
+                                    to start chatting with the bot.
+                                </p>
+                            </div>
+                            <button className="btn btn-default btn-sm">
+                                Save
+                            </button>
+                        </form>
+                    </div>
+                    <div className="faq content-section">
+                        <h3 className="center" id="faq">
+                            FAQ
+                        </h3>
+                        <p><b>Why is Fan Commerce Free?</b></p>
+                        <p>
+                            Fan commerce is currently in Beta. We want to get as many
+                            messages as possible through the system early on so that
+                            we can optimize and improve the bot logic. As soon as we're
+                            out of Beta we'll likely move to a pay-per-use model with 
+                            a useable free tier.
+                        </p>
+                        <p><b>How can I change the content of the bot responses?</b></p>
+                        <p>
+                            You can edit a custom welcome message. This will be the first
+                            thing a customer is sent when they message your page. We don't
+                            allow editing beyond that because we would like to continually
+                            optimize and improve the presentation and text. If you have
+                            any suggestions for how to improve our messaging please don't
+                            hesistate to let us know.
+                        </p>
+                        <p><b>How many sales has Fan Commerce generated me?</b></p>
+                        <p>
+                            We add "FanCommerce" as the utm source for every visit to your
+                            site. We're also working on conversion stats and displaying
+                            bot data. Those should be added to the dashboard shortly.
+                        </p>
+                    </div>
                 </div> 
             )
         }
@@ -423,6 +501,14 @@ const ShopifyAppComponent = React.createClass({
                             <div className="panel-body center">
                                 {content}
                             </div>
+                        </div>
+                        <br /> 
+                        <div className="center">
+                            <a 
+                                href="https://www.iubenda.com/privacy-policy/7833616" 
+                                target="_blank"
+                                style={{color: 'white'}}
+                            >privacy policy</a>
                         </div>
                     </div>
                 </div>
