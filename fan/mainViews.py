@@ -72,6 +72,10 @@ def appIndex():
 def root():
     return flask.render_template('index.jinja2')
 
+@app.route('/favicon.ico')
+def favicon():
+    return flask.redirect('/static/images/favicon.png')
+
 @app.errorhandler(404)
 def page_not_found(self):
     """Return a custom 404 error."""
@@ -299,6 +303,7 @@ def facebookMessangerWebhook():
 def processWebhookEntry(entry):
     pageId = entry.get('id')
     shopifyUser = ShopifyUser.forPageId(pageId)
+    flask.request.shopifyUser = shopifyUser
     if shopifyUser:
         for message in entry.get('messaging'):
             processWebhookMessage(shopifyUser, message)
@@ -309,8 +314,12 @@ def processWebhookMessage(shopifyUser, message):
     userId = senderId # on reciept 
 
     conversation = ShopifyConversation.findOrCreate(shopifyUser, userId)
+    flask.request.conversation = conversation
 
-
+    ShopifyMessage(
+        raw=message,
+        shopifyConversation=conversation.key,
+    ).put()
     # TODO actually log messages
     if message.get('message'):
         logging.info("got message")
@@ -321,26 +330,21 @@ def processWebhookMessage(shopifyUser, message):
         if fuzz.ratio("go shopping", text) >= 90:
             conversation.startShopping()
 
-        elif text.startswith('search for'):
+        if text.startswith('search for'):
             match = re.search('^search for\s?:?\s?(.*)', text)
             if match:
                 conversation.sendSearchResults(match.group(1))
 
-        elif conversation.isStarting():
+        if conversation.isStarting():
             conversation.sendWelcomeMessage()
 
         logging.info(text)
-        # resp = api.sendFacebookGenericTemplate(message.get('sender'))
-        # logging.info(resp)
 
     elif message.get('postback'):
         logging.info("got postback")
         # make conversation active if this happens?
         payload = message['postback']['payload']
-        print payload
-        print payload == "popularProducts"
         if payload == "popularProducts":
-            print 'WHAGSGSA'
             conversation.sendPopularProducts()
         elif payload == "searchForProducts":
             conversation.sendSearchPrompt()

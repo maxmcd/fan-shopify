@@ -1,0 +1,36 @@
+{% extends 'admin/adminBase.jinja2' %}
+
+{% block body %}
+    <div class="container">
+        <br>
+        <ol class="breadcrumb">
+            <li><a href="/admin/shopify-users/">Shopify Users</a></li>
+            <li><a href="{{shopifyUser.getAdminUrl()}}">{{shopifyUser.myshopifyDomain}}</a></li>
+            <li class="active">Conversations</li>
+        </ol>
+        <div class="row">
+            <div class="col-md-12">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>User Id</th>
+                            <th>Active?</th>
+                            <th>Welcome Message Sent?</th>
+                            <th>Message Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for conversation in conversations %}
+                            <tr>
+                                <td>{{conversation.userId}}</td>
+                                <td>{{conversation.active}}</td>
+                                <td>{{conversation.welcomeMessageSent}}</td>
+                                <td>{{conversation.getMessageCount()}}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

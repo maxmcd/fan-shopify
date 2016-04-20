@@ -137,73 +137,6 @@ class ShopifyUser(User):
                 str(pageId)
             ).get()
 
-    def getJson(self):
-        return {
-            'pageId':self.pageId,
-            'facebookToken':self.facebookToken,
-            'facebookPageName':self.facebookPageName,
-            'facebookPageHandle':self.facebookPageHandle,
-            'welcomeMessage':self.welcomeMessage,
-        }
-
-    def search(self, term):
-        index = search.Index(self.myshopifyDomain)
-        results = index.search(
-            query=search.Query(
-                term,
-                options=search.QueryOptions(
-                    limit=10,
-                    cursor=search.Cursor()
-                )
-            )
-        )
-        keys = []
-        for result in results.results:
-            keys.append(ndb.Key(ShopifyProduct, int(result.doc_id)))
-
-        products = ndb.get_multi(keys)
-        return products
-
-    def getPopularProducts(self):
-        return ShopifyProduct.query()\
-            .filter(ShopifyProduct.shopifyUser == self.key)\
-            .order(-ShopifyProduct.orderCount)\
-            .fetch(limit=10)
-
-
-    def sendFacebookMessage(self, userId, messageObject):
-        return api.facebook(
-            "/me/messages/",
-            accessToken=self.facebookPageToken,
-            body={
-                "recipient":{"id":userId},
-                "message":messageObject,
-            },
-        )
-
-    def sendFacebookTemplate(self, userId, payload):
-        return self.sendFacebookMessage(userId, {
-        "attachment":{
-            "type":"template",
-            "payload":payload
-        }
-    })
-
-    def sendFacebookMessageText(self, userId, text):
-        return self.sendFacebookMessage(userId, {
-            "text":text,
-        })
-
-    def getFacebookPages(self):
-        return api.facebook(
-            "/me/accounts",
-            method="GET",
-            body={
-                'is_promotable':True,
-            },
-            accessToken=self.facebookToken,
-        )
-
     def activateSession(self):
         if self.authToken == None:
             raise Exception(
@@ -226,6 +159,51 @@ class ShopifyUser(User):
             quantity,
         )
 
+    def getFacebookPages(self):
+        return api.facebook(
+            "/me/accounts",
+            method="GET",
+            body={
+                'is_promotable':True,
+            },
+            accessToken=self.facebookToken,
+        )
+
+    def _getProductsQuery(self):
+        return ShopifyProduct.query()\
+            .filter(ShopifyProduct.shopifyUser == self.key)\
+
+    def _getConversationsQuery(self):
+        return ShopifyConversation.query()\
+            .filter(ShopifyConversation.shopifyUser == self.key)\
+
+    def getProducts(self):
+        return self._getProductsQuery().fetch()
+
+    def getConversations(self):
+        return self._getConversationsQuery().fetch()
+
+    def getProductCount(self):
+        return self._getProductsQuery().count()
+
+    def getConversationCount(self):
+        return self._getConversationsQuery().count()
+
+    def getJson(self):
+        return {
+            'pageId':self.pageId,
+            'facebookToken':self.facebookToken,
+            'facebookPageName':self.facebookPageName,
+            'facebookPageHandle':self.facebookPageHandle,
+            'welcomeMessage':self.welcomeMessage,
+        }
+
+    def getPopularProducts(self):
+        return ShopifyProduct.query()\
+            .filter(ShopifyProduct.shopifyUser == self.key)\
+            .order(-ShopifyProduct.orderCount)\
+            .fetch(limit=10)
+
     def getViewLink(self, handle, variantId=None):
         url = "http://%s/products/%s?utm_source=FanCommerce" % (
             self.myshopifyDomain, 
@@ -235,6 +213,53 @@ class ShopifyUser(User):
             url += ("?variant=" + str(variantId))
 
         return url
+
+    def search(self, term):
+        index = search.Index(self.myshopifyDomain)
+        results = index.search(
+            query=search.Query(
+                term,
+                options=search.QueryOptions(
+                    limit=10,
+                    cursor=search.Cursor()
+                )
+            )
+        )
+        keys = []
+        for result in results.results:
+            keys.append(ndb.Key(ShopifyProduct, int(result.doc_id)))
+
+        products = ndb.get_multi(keys)
+        return products
+
+    def sendFacebookMessage(self, userId, messageObject):
+        body = {
+            "recipient":{"id":userId},
+            "message":messageObject,
+        }
+        resp = api.facebook(
+            "/me/messages/",
+            accessToken=self.facebookPageToken,
+            body=body,
+        )
+        ShopifyMessage(
+            raw=body,
+            isInbound=False,
+            shopifyConversation=flask.request.conversation.key,
+        ).put()
+
+    def sendFacebookMessageText(self, userId, text):
+        return self.sendFacebookMessage(userId, {
+            "text":text,
+        })
+
+    def sendFacebookTemplate(self, userId, payload):
+        return self.sendFacebookMessage(userId, {
+            "attachment":{
+                "type":"template",
+                "payload":payload
+            }
+        })
 
 class ShopifyProduct(BaseModel):
 
@@ -252,22 +277,6 @@ class ShopifyProduct(BaseModel):
     price = ndb.StringProperty()
     deleted = ndb.BooleanProperty(default=False)
     orderCount = ndb.IntegerProperty(default=0)
-
-    def getSearchDocument(self):
-        # TODO: add date added field
-        # search.DateField(name='birthday', value=datetime(year=1960, month=6, day=19)),
-        return search.Document(
-            doc_id = str(self.key.id()),
-            fields=[
-                search.TextField(name='title', value=self.title),
-                search.HtmlField(name='description', value=self.bodyHtml),
-                search.TextField(name='tags', value=self.tags),
-                search.TextField(name='product_type', value=self.productType),
-            ]
-        )
-
-    def getVariantElements(self):
-        pass
 
     def getMessageElement(self, shopifyUser):
 
@@ -300,16 +309,34 @@ class ShopifyProduct(BaseModel):
             ]
         }
 
+    def getSearchDocument(self):
+        # TODO: add date added field
+        # search.DateField(name='birthday', value=datetime(year=1960, month=6, day=19)),
+        return search.Document(
+            doc_id = str(self.key.id()),
+            fields=[
+                search.TextField(name='title', value=self.title),
+                search.HtmlField(name='description', value=self.bodyHtml),
+                search.TextField(name='tags', value=self.tags),
+                search.TextField(name='product_type', value=self.productType),
+            ]
+        )
+
+    def getVariantElements(self):
+        pass
+
 class ShopifyMessage(BaseModel):
 
-    raw = ndb.PickleProperty()
     shopifyConversation = ndb.KeyProperty(kind="ShopifyConversation")
+    isInbound = ndb.BooleanProperty(default=True)
+    raw = ndb.PickleProperty()
 
 class ShopifyConversation(BaseModel):
 
     shopifyUser = ndb.KeyProperty(kind="ShopifyUser")
     active = ndb.BooleanProperty(default=False)
     welcomeMessageSent = ndb.BooleanProperty(default=False)
+    searching = ndb.BooleanProperty(default=False)
     userId = ndb.IntegerProperty()
 
     @classmethod
@@ -334,6 +361,18 @@ class ShopifyConversation(BaseModel):
             .filter(cls.active == True)\
             .fetch()
 
+    def getShopifyUser(self):
+        #TODO either get from the flask object or grab from the db
+        pass
+
+    def isStarting(self):
+        return bool(not self.welcomeMessageSent and not self.active)
+
+    def getMessageCount(self):
+        return ShopifyMessage.query()\
+            .filter(ShopifyMessage.shopifyConversation == self.key)\
+            .count()
+
     def recentMessageCount(self, minutes=20):
         return ShopifyMessage.query()\
             .filter(ShopifyMessage.shopifyConversation == self.key)\
@@ -342,8 +381,72 @@ class ShopifyConversation(BaseModel):
                 datetime.timedelta(minutes=minutes))\
             .count()
 
-    def isStarting(self):
-        return bool(not self.welcomeMessageSent and not self.active)
+    def sendGoodbyeMessage(self):
+        message = "Hi! It's us again. Let us know if you'd "+\
+            "like to continue shopping. If not, no "+\
+            "worries, and we'll look forward to future "+\
+            "shopping adventures"
+
+        resp = self.shopifyUser.get().sendFacebookMessageText(
+            self.userId,
+            text=message,
+        )
+        self.welcomeMessageSent = True
+        self.put()
+        return resp
+
+    def sendPopularProducts(self):
+        shopifyUser = self.shopifyUser.get()
+        self.sendProducts(shopifyUser.getPopularProducts(), shopifyUser) 
+
+    def sendProducts(self, products, shopifyUser):
+        elements = []
+
+        i = 0
+        for product in products:
+            i += 1
+            if i == 10:
+                break
+            else:
+                elements.append(product.getMessageElement(shopifyUser))
+
+        return self.shopifyUser.get().sendFacebookMessage(
+            self.userId,
+            {
+                "attachment":{
+                    "type":"template",
+                    "payload":{
+                        "template_type": "generic",
+                        "elements": elements,
+                    }
+                }
+            }
+        )
+
+    def sendSearchPrompt(self):
+        resp = self.shopifyUser.get().sendFacebookMessageText(
+            self.userId,
+            "Great! To search products type \"Search for:\" before your search.",
+        )
+        return resp
+
+    def sendSearchResults(self, term):
+        shopifyUser = self.shopifyUser.get()
+        products = shopifyUser.search(term)
+        if products:
+            self.sendProducts(products, shopifyUser)
+
+    def sendWelcomeMessage(self):
+        shopifyUser = self.shopifyUser.get()
+        message = shopifyUser.welcomeMessage or \
+            "Welcome! Type \"Go Shopping\" to shop right here on Messenger."
+        resp = self.shopifyUser.get().sendFacebookMessageText(
+            self.userId,
+            message,
+        )
+        self.welcomeMessageSent = True
+        self.put()
+        return resp
 
     def startShopping(self):
         resp = self.shopifyUser.get().sendFacebookTemplate(
@@ -373,73 +476,6 @@ class ShopifyConversation(BaseModel):
         self.active = True
         self.put()
         return resp
-
-    def sendWelcomeMessage(self):
-        shopifyUser = self.shopifyUser.get()
-        message = shopifyUser.welcomeMessage or \
-            "Welcome! Type \"Go Shopping\" to shop right here on Messenger."
-        resp = self.shopifyUser.get().sendFacebookMessageText(
-            self.userId,
-            message,
-        )
-        self.welcomeMessageSent = True
-        self.put()
-        return resp
-
-    def sendGoodbyeMessage(self):
-        message = "Hi! It's us again. Let us know if you'd "+\
-            "like to continue shopping. If not, no "+\
-            "worries, and we'll look forward to future "+\
-            "shopping adventures"
-
-        resp = self.shopifyUser.get().sendFacebookMessageText(
-            self.userId,
-            text=message,
-        )
-        self.welcomeMessageSent = True
-        self.put()
-        return resp
-
-    def sendSearchPrompt(self):
-        resp = self.shopifyUser.get().sendFacebookMessageText(
-            self.userId,
-            "Great! To search products type \"Search for:\" before your search.",
-        )
-        return resp
-
-    def sendPopularProducts(self):
-        shopifyUser = self.shopifyUser.get()
-        self.sendProducts(shopifyUser.getPopularProducts(), shopifyUser) 
-
-    def sendSearchResults(self, term):
-        shopifyUser = self.shopifyUser.get()
-        products = shopifyUser.search(term)
-        if products:
-            self.sendProducts(products, shopifyUser)
-
-    def sendProducts(self, products, shopifyUser):
-        elements = []
-
-        i = 0
-        for product in products:
-            i += 1
-            if i == 10:
-                break
-            else:
-                elements.append(product.getMessageElement(shopifyUser))
-
-        return self.shopifyUser.get().sendFacebookMessage(
-            self.userId,
-            {
-                "attachment":{
-                    "type":"template",
-                    "payload":{
-                        "template_type": "generic",
-                        "elements": elements,
-                    }
-                }
-            }
-        )
 
 
 class Team(BaseModel):

@@ -14,3 +14,9 @@ Clicking the buy button lists variants of that item.
 Clicking the view item button takes a person to that page.
 
 What else?
+
+Go Shopping initiates a converstion. All replies are parsed and replied to.
+
+"Does this come in a size 9?"
+"I'm looking for a cool lamp"
+"I'm looking for a wedding dress"

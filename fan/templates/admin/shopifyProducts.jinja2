@@ -6,16 +6,8 @@
         <ol class="breadcrumb">
             <li><a href="/admin/shopify-users/">Shopify Users</a></li>
             <li><a href="{{shopifyUser.getAdminUrl()}}">{{shopifyUser.myshopifyDomain}}</a></li>
-            <li class="active">Product Search</li>
+            <li class="active">Products</li>
         </ol>
-        <div class="row">
-            <div class="col-md-6">
-                <form>
-                    <input name="q" type="text" class="form-control" value="{{query}}" autofocus>
-                    <button>Submit</button>
-                </form>
-            </div>
-        </div>
         <div class="row">
             <div class="col-md-12">
                 {% include 'admin/productTable.jinja2' %}

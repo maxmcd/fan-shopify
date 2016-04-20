@@ -16,10 +16,18 @@ def facebookAppId():
 def isDev():
     return bool(CONFIG.get('dev'))
 
+def version():
+    return CONFIG['hash']
+
+def humanDate(datetime):
+    return datetime.strftime("%m/%d/%y %I:%M%p")
+
 jinjaGlobals = {
     'user':user,
     'shopifyApiKey':shopifyApiKey,
     'applicationHost':applicationHost,
     'facebookAppId':facebookAppId,
     'isDev':isDev,
+    'version':version,
+    'humanDate':humanDate,
 }

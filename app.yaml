@@ -10,24 +10,20 @@ builtins:
 handlers:
 - url: "/static"
   static_dir: static
-  secure: always
+  secure: optional
   expiration: 4d
   application_readable: true
-- url: /favicon.ico
-  static_files: favicon.ico
-  upload: favicon.ico
-  expiration: 4d
 - url: "/background/"
   script: fan._app.app
-  secure: always
+  secure: optional
   login: admin
 - url: "/admin/"
   script: fan._app.app
-  secure: always
+  secure: optional
   login: admin
 - url: .*
   script: fan._app.app
-  secure: always
+  secure: optional
 
 libraries:
 - name: jinja2

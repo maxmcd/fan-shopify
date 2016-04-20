@@ -10,14 +10,68 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            User Info
+                        </div>
+                    </div>
                     <div class="panel-body">
                         <div>
                             <b>Email: </b> {{shopifyUser.email}}
-                        </div>                        
+                        </div>
+                        <div>
+                            <b>My Shopify Domain: </b> {{shopifyUser.myshopifyDomain}}
+                        </div>
+                        <div>
+                            <b>Auth Token: </b> {{shopifyUser.authToken}}
+                        </div>
+                        <div>
+                            <b>FB Page Name: </b> {{shopifyUser.facebookPageName}}
+                        </div>
+                        <div>
+                            <b>FB Page Handle: </b> {{shopifyUser.facebookPageHandle}}
+                        </div>
+                        <div>
+                            <b>Welcome Message: </b> 
+                            <p>
+                                {{shopifyUser.welcomeMessage}}
+                            </p>
+                        </div>
+                        <hr>
+                        <b>Test Product Search</b>
                         <form action="product-search/">
-                            <input name="q" type="text" class="form-control">
-                            <button>Submit</button>
+                            <div class="input-group">
+                                <input type="text" name="q" class="form-control" placeholder="Search for...">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default" type="button">Search</button>
+                                </span>
+                            </div>
                         </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            User Data
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <ul class="list-group">
+                            <a href="products/"class="list-group-item">
+                                <span class="badge">
+                                    {{shopifyUser.getProductCount()}}
+                                </span>
+                                Products
+                            </a>
+                            <a href="conversations/"class="list-group-item">
+                                <span class="badge">
+                                    {{shopifyUser.getConversationCount()}}
+                                </span>
+                                Conversations
+                            </a>
+                        </ul>
                     </div>
                 </div>
             </div>
