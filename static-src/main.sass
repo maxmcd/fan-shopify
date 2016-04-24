@@ -50,15 +50,45 @@ body
     color: white
 
 body.homepage
+
     .homepage-content
-        margin: 200px auto 0px auto
+        margin: 100px auto 0px auto
         width: 400px
         text-align: center
         color: white
+        font-weight: 300
         img
-            width: 210px
-        h4
+            width: 160px
+            // opacity: 0
+            // -webkit-animation: fadein 2s 0s forwards
+            // animation: fadein 2s 0s forwards
+        h1
             font-family: 'Open Sans'
-            font-weight: 400
-            font-size: 50px
+            font-weight: 300
+            font-size: 30px
+            // opacity: 0
+            // -webkit-animation: fadein 2s 0.5s forwards
+            // animation: fadein 2s 0.5s forwards
             // text-shadow: 0px 0px 14px rgba(255, 255, 255, 0.4)
+        p
+            font-size: 16px
+            // opacity: 0
+            // -webkit-animation: fadein 2s 1s forwards
+            // animation: fadein 2s 1s forwards
+        hr
+            // opacity: 0
+            // -webkit-animation: fadein 2s 1.5s forwards
+            // animation: fadein 2s 1.5s forwards
+        
+
+@keyframes fadein
+    from 
+        opacity: 0
+    to 
+        opacity: 1
+
+@-webkit-keyframes fadein
+    from 
+        opacity: 0
+    to 
+        opacity: 1

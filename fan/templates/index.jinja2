@@ -1,22 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Fan</title>
-    <link rel="stylesheet" href="/static/vendor.css">
-    <link rel="stylesheet" href="/static/client.css">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,400italic,600,600italic' rel='stylesheet' type='text/css'>
+{% extends 'base.jinja2' %}
+
+{% block head %}
     <style>
         html {
             min-height: 100%;
         }
     </style>
-</head>
-<body class="homepage">
+{% endblock %}
+
+{% block body %}
     <div class="homepage-content">
         <img src="/static/images/fan2.png" alt="">
-        <h4>Fan</h4>        
+        <h1>Fan</h1>
+        <p>
+            Increasing the efficency of human communication. 
+        </p>
+        <hr>
     </div>
-</body>
-</html>
-
+{% endblock %}

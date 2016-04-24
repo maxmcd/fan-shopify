@@ -7,8 +7,6 @@ import re
 import shopify
 import uuid
 
-from fuzzywuzzy import fuzz
-
 from google.appengine.api import urlfetch
 from google.appengine.api import taskqueue
 from google.appengine.api import search 
@@ -18,6 +16,7 @@ from fan.util import *
 from fan._app import app
 from fan import api
 from fan.config import CONFIG
+from fan.bot import ShopifyFacebookBot
 
 @app.route('/login/')
 def getLogin():
@@ -70,7 +69,10 @@ def appIndex():
 
 @app.route('/')
 def root():
-    return flask.render_template('index.jinja2')
+    return flask.render_template(
+        'index.jinja2',
+        bodyClass="homepage"
+        )
 
 @app.route('/favicon.ico')
 def favicon():
@@ -314,37 +316,8 @@ def processWebhookMessage(shopifyUser, message):
     userId = senderId # on reciept 
 
     conversation = ShopifyConversation.findOrCreate(shopifyUser, userId)
-    flask.request.conversation = conversation
 
-    ShopifyMessage(
-        raw=message,
-        shopifyConversation=conversation.key,
-    ).put()
-    # TODO actually log messages
-    if message.get('message'):
-        logging.info("got message")
-
-        text = message.get('message').get('text')
-        text = text.lower()
-
-        if fuzz.ratio("go shopping", text) >= 90:
-            conversation.startShopping()
-
-        if text.startswith('search for'):
-            match = re.search('^search for\s?:?\s?(.*)', text)
-            if match:
-                conversation.sendSearchResults(match.group(1))
-
-        if conversation.isStarting():
-            conversation.sendWelcomeMessage()
-
-        logging.info(text)
-
-    elif message.get('postback'):
-        logging.info("got postback")
-        # make conversation active if this happens?
-        payload = message['postback']['payload']
-        if payload == "popularProducts":
-            conversation.sendPopularProducts()
-        elif payload == "searchForProducts":
-            conversation.sendSearchPrompt()
+    bot = ShopifyFacebookBot(shopifyUser, conversation, message)
+    bot.process()
+    bot.sendResponses()
+    logging.info(bot.responses)
