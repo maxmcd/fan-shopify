@@ -191,7 +191,8 @@ class ShopifyUser(User):
         return self._getProductsQuery().fetch()
 
     def getConversations(self):
-        return self._getConversationsQuery().fetch()
+        return self._getConversationsQuery()\
+            .order(-ShopifyConversation.created).fetch()
 
     def getProductCount(self):
         return self._getProductsQuery().count()
@@ -251,19 +252,20 @@ class ShopifyProduct(BaseModel):
     orderCount = ndb.IntegerProperty(default=0)
 
     def getMessageElement(self, shopifyUser):
-        if len(self.variants) > 1:
-            buyLink = {
-                "type": "postback",
-                "title": "Buy Item",
-            }
-            buyLink["payload"] = "postback://showVariants?id=%d" % self.key.id()
-        else:
-            url = shopifyUser.getBuyLink(self.variants[0][0])
-            buyLink = {
-                "type": "web_url",
-                "url": url,
-                "title": "Buy Item",
-            }
+        # if len(self.variants) > 1:
+        #     buyLink = {
+        #         "type": "postback",
+        #         "title": "Buy Item",
+        #     }
+        #     buyLink["payload"] = "postback://showVariants?id=%d" % self.key.id()
+        # else:
+        # TODO: support this postback
+        url = shopifyUser.getBuyLink(self.variants[0][0])
+        buyLink = {
+            "type": "web_url",
+            "url": url,
+            "title": "Buy Item",
+        }
 
         viewUrl = shopifyUser.getViewLink(self.handle)
         return {
@@ -332,18 +334,30 @@ class ShopifyConversation(BaseModel):
             .filter(cls.active == True)\
             .fetch()
 
+    def getAdminUrl(self):
+        return "/admin/shopify-users/%s/conversations/%s/" % (
+            self.shopifyUser.urlsafe(),
+            self.key.urlsafe(),
+        )
+
     def isStarting(self):
         return bool(not self.welcomeMessageSent and not self.active)
 
-    def getMessageCount(self):
+    def _getMessageQuery(self):
         return ShopifyMessage.query()\
-            .filter(ShopifyMessage.shopifyConversation == self.key)\
-            .count()
+            .filter(ShopifyMessage.shopifyConversation == self.key)
+
+    def getMessageCount(self):
+        return self._getMessageQuery().count()
+
+    def getMessages(self):
+        return self._getMessageQuery()\
+            .order(ShopifyMessage.created).fetch()
 
     def recentMessageCount(self, minutes=20):
         return ShopifyMessage.query()\
             .filter(ShopifyMessage.shopifyConversation == self.key)\
-            .filter(ShopifyMessage.created < \
+            .filter(ShopifyMessage.created > \
                 datetime.datetime.now() - \
                 datetime.timedelta(minutes=minutes))\
             .count()

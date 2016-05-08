@@ -1,3 +1,4 @@
+import json
 from fan.models import User
 from fan.config import CONFIG
 
@@ -22,6 +23,9 @@ def version():
 def humanDate(datetime):
     return datetime.strftime("%m/%d/%y %I:%M%p")
 
+def prettyJson(data):
+    return json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
+
 jinjaGlobals = {
     'user':user,
     'shopifyApiKey':shopifyApiKey,
@@ -30,4 +34,5 @@ jinjaGlobals = {
     'isDev':isDev,
     'version':version,
     'humanDate':humanDate,
+    'prettyJson':prettyJson,
 }

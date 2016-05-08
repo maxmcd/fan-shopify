@@ -10,10 +10,22 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
+- kind: ShopifyConversation
+  properties:
+  - name: shopifyUser
+  - name: created
+    direction: desc
+
 - kind: ShopifyMessage
   properties:
   - name: shopifyConversation
   - name: created
+
+- kind: ShopifyMessage
+  properties:
+  - name: shopifyConversation
+  - name: created
+    direction: desc
 
 - kind: ShopifyProduct
   properties:

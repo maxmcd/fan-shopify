@@ -17,15 +17,21 @@
                             <th>Active?</th>
                             <th>Welcome Message Sent?</th>
                             <th>Message Count</th>
+                            <th>Created</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for conversation in conversations %}
                             <tr>
-                                <td>{{conversation.userId}}</td>
+                                <td>
+                                    <a href="{{conversation.getAdminUrl()}}">                                    
+                                        {{conversation.userId}}
+                                    </a>
+                                </td>
                                 <td>{{conversation.active}}</td>
                                 <td>{{conversation.welcomeMessageSent}}</td>
                                 <td>{{conversation.getMessageCount()}}</td>
+                                <td>{{humanDate(conversation.created)}}</td>
                             </tr>
                         {% endfor %}
                     </tbody>

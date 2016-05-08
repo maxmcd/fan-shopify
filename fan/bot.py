@@ -18,16 +18,17 @@ from fan.models import *
 
 class ShopifyFacebookBot(object):
 
-    def __init__(self, shopifyUser, conversation, message):
+    def __init__(self, shopifyUser, conversation, message=None):
         self.shopifyUser = shopifyUser
         self.conversation = conversation
-        self.message = message
         self.responses = []
-    
-        ShopifyMessage(
-            raw=message,
-            shopifyConversation=conversation.key,
-        ).put()
+
+        if message:
+            self.message = message
+            ShopifyMessage(
+                raw=message,
+                shopifyConversation=conversation.key,
+            ).put()
 
     def process(self):
         if self.message.get('message'):
@@ -72,7 +73,7 @@ class ShopifyFacebookBot(object):
             }
         })
 
-    def addFbMessageText(text):
+    def addFbMessageText(self, text):
         self.responses.append({
             "text":text
         })
@@ -127,12 +128,15 @@ class ShopifyFacebookBot(object):
         self.addFbMessageText(
             "Great! To search products type \"Search for:\" before your search.",
         )
-        return resp
 
     def sendSearchResults(self, term):
         products = self.shopifyUser.search(term)
         if products:
             self.sendProducts(products)
+        else:
+            self.addFbMessageText(
+                "Whoops! We couldn't find any product matches for \"%s\"." % term,
+            )            
 
     def sendWelcomeMessage(self):
         message = self.shopifyUser.welcomeMessage or \

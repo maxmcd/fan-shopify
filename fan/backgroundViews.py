@@ -15,6 +15,7 @@ from fan.models import *
 from fan.util import params
 from fan._app import app
 from fan import api
+from fan.bot import ShopifyFacebookBot
 from fan.config import CONFIG
 
 @app.route('/background/shopify/init/', methods=['POST', 'GET'])
@@ -158,8 +159,12 @@ def reapStaleConversations():
     activeConversations = ShopifyConversation.getActive()
     for conversation in activeConversations:
         if conversation.recentMessageCount(minutes=20) == 0:
+            shopifyUser = conversation.shopifyUser.get()
+            bot = ShopifyFacebookBot(shopifyUser, conversation)
+            bot.sendGoodbyeMessage()
+            bot.sendResponses()
+            logging.info(bot.responses)
             conversation.active = False
             conversation.put()
-            conversation.sendGoodbyeMessage()
 
     return "OK"

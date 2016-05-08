@@ -59,6 +59,17 @@ def adminShopifyUserConversations(shopifyUserKey):
         conversations=conversations,
     )
 
+@app.route('/admin/shopify-users/<shopifyUserKey>/conversations/<conversationKey>/')
+def adminShopifyUserConversation(shopifyUserKey, conversationKey):
+    shopifyUser = ndb.Key(urlsafe=shopifyUserKey).get()
+    conversation = ndb.Key(urlsafe=conversationKey).get()
+    return flask.render_template(
+        'admin/shopifyConversation.jinja2',
+        shopifyUser=shopifyUser,
+        conversation=conversation,
+    )
+
+
 @app.route('/admin/shopify-users/<shopifyUserKey>/product-search/')
 def adminShopifyUserProductSearch(shopifyUserKey):
     shopifyUser = ndb.Key(urlsafe=shopifyUserKey).get()

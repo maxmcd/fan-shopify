@@ -25,8 +25,9 @@ def facebook(path, method="POST", body=None, accessToken=None):
         logging.info(jsonBody)
         return jsonBody
     else:
-        logging.info(resp.content)
-        raise Exception
+        logging.warning(resp.content)
+        logging.warning(body)
+        # raise Exception
 
 def subscribeFacebookPage(accessToken):
     return facebook('/me/subscribed_apps', accessToken=accessToken)

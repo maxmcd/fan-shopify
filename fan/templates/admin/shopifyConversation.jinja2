@@ -1,0 +1,33 @@
+{% extends 'admin/adminBase.jinja2' %}
+
+{% block body %}
+    <div class="container">
+        <br>
+        <ol class="breadcrumb">
+            <li><a href="/admin/shopify-users/">Shopify Users</a></li>
+            <li><a href="{{shopifyUser.getAdminUrl()}}">{{shopifyUser.myshopifyDomain}}</a></li>
+            <li><a href="{{shopifyUser.getAdminUrl()}}conversations/">Conversations</a></li>
+            <li class="active">{{conversation.userId}}</li>
+        </ol>
+        <div class="row">
+            <div class="col-md-12">
+                <h3>Messages</h3>
+                {% for message in conversation.getMessages() %}
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <div>{{humanDate(message.created)}}</div>
+                            <div>
+                                {% if message.isInbound %}
+                                    From Facebook
+                                {% else %}
+                                    To Facebook
+                                {% endif %}
+                            </div>
+                            <pre>{{prettyJson(message.raw)}}</pre>                            
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

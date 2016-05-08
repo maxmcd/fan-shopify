@@ -223,7 +223,7 @@ def shopifyRoot():
             shopifyUser.login()
 
             permission_url = session.create_permission_url(scope)
-            print permission_url
+            logging.info(permission_url)
             permission_url += ("&state=" + authState)
             redirect_uri = "https://%s/shopify/" % CONFIG['application_host']
             permission_url += ("&redirect_uri=" + redirect_uri)
@@ -286,7 +286,7 @@ def facebookMessangerWebhook():
         if challenge:
             return challenge
 
-        print flask.request.data
+        logging.info(flask.request.data)
         data = json.loads(flask.request.data)
         logging.info(data)
         # json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
@@ -294,11 +294,12 @@ def facebookMessangerWebhook():
         for entry in entries:
             processWebhookEntry(entry)
     except Exception as e:
+        logging.warning(e)
         # raise
-        if CONFIG['dev']:
-            print e
-        else:
-            raise
+        # if CONFIG['dev']:
+        #     print e
+        # else:
+        #     raise
 
     return "OK"
 
